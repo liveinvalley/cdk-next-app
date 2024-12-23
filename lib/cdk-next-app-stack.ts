@@ -71,10 +71,21 @@ export class CdkNextAppStack extends cdk.Stack {
     });
 
     // Route53 にAレコード作成
+    // 合わせて，HTTPSレコード作成（クライアントにHTTPアクセスを避けさせる; HTTP/2に対応していることを知らせる）
     const aRecord = new route53.ARecord(this, 'ARecord', {
       zone: hostedZone,
       recordName: hostName,
       target: route53.RecordTarget.fromAlias(new route53_targets.ApiGateway(api)),
+    });
+    const recordSet = new route53.RecordSet(this, 'RecordSet', {
+      zone: hostedZone,
+      recordName: hostName,
+      recordType: route53.RecordType.HTTPS,
+      target: {
+        values: [
+          '1 . alpn=h2',
+        ],
+      },
     });
   }
 }
